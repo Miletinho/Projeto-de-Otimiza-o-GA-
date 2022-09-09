@@ -1,5 +1,6 @@
+import time
 from functions import *
-from utils import _MAX_GENERATIONS
+from utils import _MAX_GENERATIONS,_POP_SIZE
 from EE import *
 
 
@@ -14,6 +15,8 @@ if __name__ == "__main__":
 	Opção:
 	""")
 	gen = 0
+
+	#startTime = time.time()
  
 	if option == "1":
 
@@ -28,11 +31,14 @@ if __name__ == "__main__":
 	else:
 		sigma = 1
 
+		for i in range(_POP_SIZE):
+			population[i].append(sigma)
+
 		while gen < _MAX_GENERATIONS:
 
 			numberOfMutations = 0
 			numberOfMutationSuccess = 0
-			[population, mutationSuccess, mutations] = findSolutionPart2(population, gen, sigma)
+			[population, mutationSuccess, mutations] = findSolutionPart2(population, gen)
 			numberOfMutationSuccess += mutationSuccess
 			numberOfMutations += mutations
 			# ---- 1/5 da regra de sucesso:
@@ -40,7 +46,8 @@ if __name__ == "__main__":
 			# ps é a % de mutações com sucesso
 			if gen % 5 == 0:
 				ps = numberOfMutationSuccess/numberOfMutations
-				sigma = evaluateSigma(sigma, ps)
+				# print(ps)
+				evaluateSigma(population, ps)
 				
 			print("\n")
 			print(f"*****{gen}th Generation*****")
@@ -50,4 +57,6 @@ if __name__ == "__main__":
 		
 	if gen == _MAX_GENERATIONS and population != []:
 		print("Solution not found")
+
+	#getTime(startTime)
 		

@@ -1,14 +1,14 @@
 import random 
-from random import random as rand
 import numpy as np
-from utils import _A, _B, _C, _D, _START, _END, _POP_SIZE, _MP, _CP
+from random import random as rand
+from utils import _A, _B, _C, _D, _START, _END, _POP_SIZE, _MP, _CP,_MP_ES,_LOCAL_THAO,_GLOBAL_THAO
 
 def ackleyFitnessFunction(x):
     sum1 = 0
     sum2 = 0
-    for xi in x:
-        sum1 += xi**2
-        sum2 += np.cos(_C*xi)
+    for i in range(_D):
+        sum1 += x[i]**2
+        sum2 += np.cos(_C*x[i])
 
     fitness = -_A*np.exp(-_B * np.sqrt(sum1/_D)) - np.exp(sum2/_D) + _A + np.exp(1)
 
@@ -162,6 +162,10 @@ def intermediateRecombination(parents):
             ratio = rand()
             child2.append(parent2[g] + ratio * (parent1[g] - parent2[g]))
 
+        if len(parent1) == (_D + 1):
+            child1.append(parent1[_D])
+            child2.append(parent2[_D])
+
         children = np.array([child1, child2])
         return children
     return parents
@@ -189,12 +193,25 @@ def gaussianMutation(chromosome):
             chromosome[i] = chromosome[i] + random.gauss(0,1)
     return chromosome
 
+
+def mutationES(chromosome):
+    # randomly pick a gene to mutate from the chromosome
+    for i in range(_D): 
+        r = random.uniform(0,1)
+        chromosome[_D] *= np.exp(_GLOBAL_THAO*np.random.normal(0,1) + _LOCAL_THAO*np.random.normal(0,1))
+        if r < _MP_ES:
+            chromosome[i] += chromosome[_D]*np.random.normal(0,1)
+
+    return chromosome
+
 def mutation(chromosome, type='random'):
 
     if type == 'random':
         return randomMutation(chromosome)
-    else:
+    elif type == 'gauss':
         return gaussianMutation(chromosome)
+    elif type == 'es':
+        return mutationES(chromosome)
 
 def rouletteSelection(population):
     fitnessProbability = getFitnessProbability(population)
@@ -210,13 +227,13 @@ def rouletteSelection(population):
 
     return survivors
 
-def genChildren(parents, population, roulette=False):
+def genChildren(parents, population, type='gauss', roulette=False):
     newGeneration = []
 
     for i in range(0, _POP_SIZE, 2):
         children = crossover([parents[i], parents[i+1]], type="intermediate")
         for c in children:
-            c = mutation(c, type="gauss")
+            c = mutation(c, type=type)
             population.append(c)
         
     population = sortByFitness(population)
@@ -250,3 +267,11 @@ def findSolutionPart1(population, generation):
 
     return newGeneration
     
+
+def getTime(startTime):
+    execTime = round(time.time() - startTime, 3)
+    if execTime > 60:
+        print("Tempo de execução: ", round(execTime/60, 3), " minutos")
+    else:
+        print("Tempo de execução: ", execTime, " segundos")
+    return execTime
