@@ -11,7 +11,7 @@ _MP:              Final[float] = 0.005   # Mutation Probability
 _CP:              Final[float] = 0.9     # Crossover Probability
 _POP_SIZE:        Final[int]   = 2000    # Population size
 _MAX_GENERATIONS: Final[int]   = 10000
-
+_EPSILON:         Final[float] = 1/5     # Epsilon (update rule)
 
 # other:
 # _CP:              Final[float] = 0.7     # Crossover Probability

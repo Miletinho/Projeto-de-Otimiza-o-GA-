@@ -232,7 +232,7 @@ def genChildren(parents, population, roulette=False):
 
     return newGeneration
 
-def findSolution(population, generation):
+def findSolutionPart1(population, generation):
     popWithFitness = sortByFitness(population)
     print(popWithFitness[0][1])
     if popWithFitness[0][1] < 0.001:
