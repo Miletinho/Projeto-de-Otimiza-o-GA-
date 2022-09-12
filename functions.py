@@ -1,3 +1,4 @@
+from hashlib import new
 import random 
 import numpy as np
 from random import random as rand
@@ -229,7 +230,7 @@ def rouletteSelection(population):
 
 def genChildren(parents, population, type='gauss', roulette=False):
     newGeneration = []
-
+    fit = []
     for i in range(0, _POP_SIZE, 2):
         children = crossover([parents[i], parents[i+1]], type="intermediate")
         for c in children:
@@ -243,29 +244,25 @@ def genChildren(parents, population, type='gauss', roulette=False):
     
     for p in population:
         newGeneration.append(p[0])
-
+        fit.append(p[1])
     if roulette:
         newGeneration = rouletteSelection(newGeneration)
 
-    return newGeneration
+    return newGeneration, fit
 
 def findSolutionPart1(population, generation):
     popWithFitness = sortByFitness(population)
-    print(popWithFitness[0][1])
-    if popWithFitness[0][1] < 0.001:
-        count = 0
-        solutions = []
-        while popWithFitness[count][1] < 0.001:
-            solutions.append(popWithFitness[count][0])
-            count += 1
-        print(f"Solution(s) has been found in {generation}th generation:") 
-        print(solutions)
-        return []
+    print(round(popWithFitness[0][1],1))
+    newfit = []
+    if round(popWithFitness[0][1],2) < 0.01:
+        #print(solutions)
+        for i in popWithFitness:
+            newfit.append(i[1])
+        return [],newfit
     else:
         parents = selection(population, type="random")
-        newGeneration = genChildren(parents, population)
-
-    return newGeneration
+        newGeneration,fit = genChildren(parents, population)
+    return newGeneration,fit
     
 
 def getTime(startTime):

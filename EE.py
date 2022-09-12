@@ -34,23 +34,22 @@ def calculateMutationSuccess(fitnessTotal, newFitnessTotal, mutations):
 def findSolutionPart2(population, generation):
     parents = selection(population, type="random")
     fitnessTotal = evalFitness(population)
-    newGeneration = genChildren(parents, population, type="es")
-    newFitnessTotal = evalFitness(newGeneration)
+    newGeneration,fit = genChildren(parents, population, type="es")
+    #newFitnessTotal = evalFitness(newGeneration)
     mutations = len(newGeneration)
 
-    mutationSuccess = calculateMutationSuccess(fitnessTotal, newFitnessTotal, mutations)
+    mutationSuccess = calculateMutationSuccess(fitnessTotal, fit, mutations)
     # print(mutationSuccess)
     popWithFitness = sortByFitness(newGeneration)
-    
     print(popWithFitness[0][1])
-    if popWithFitness[0][1] < 0.001:    
-        count = 0
+    if popWithFitness[0][1] < 0.001:
+        return [[], mutationSuccess, mutations,fit]
+
+    return [newGeneration, mutationSuccess, mutations,fit]
+'''count = 0
         solutions = []
         while popWithFitness[count][1] < 0.001:
             solutions.append(popWithFitness[count][0])
             count += 1
         print(f"Solution(s) has been found in {generation}th generation:") 
-        print(solutions)
-        return [[], mutationSuccess, mutations]
-
-    return [newGeneration, mutationSuccess, mutations]
+        print(solutions)'''
