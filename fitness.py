@@ -18,10 +18,10 @@ def schaffer(x):
     
     return f6
 
-def rastrigin(x):#-5.12/5.12
-    componente= 0
+def rastrigin(x):
+    component = 0
     for i in range(20):
-        componente+=(pow(x[i],2)-10*np.cos(_C*x[i]))
-    f7 = 200+componente
+        component += (pow(x[i],2)-10*np.cos(_C*x[i]))
+    f7 = 200 + component
     
     return f7
