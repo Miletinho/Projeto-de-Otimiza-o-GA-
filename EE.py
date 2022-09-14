@@ -1,6 +1,6 @@
 import numpy as np
 from functions import *
-from utils import _D, _EPSILON
+from utils import _D, _EPSILON, _FITNESS, _ROUND
 import random 
 
 
@@ -41,8 +41,8 @@ def findSolutionPart2(population, generation):
     mutationSuccess = calculateMutationSuccess(fitnessTotal, fit, mutations)
     # print(mutationSuccess)
     popWithFitness = sortByFitness(newGeneration)
-    print(popWithFitness[0][1])
-    if popWithFitness[0][1] < 0.001:
+    print(round(popWithFitness[0][1],_ROUND))
+    if popWithFitness[0][1] < _FITNESS:
         return [[], mutationSuccess, mutations,fit]
 
     return [newGeneration, mutationSuccess, mutations,fit]

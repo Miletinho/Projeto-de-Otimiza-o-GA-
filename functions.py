@@ -1,8 +1,9 @@
 from hashlib import new
-import random 
+import random
+import time 
 import numpy as np
 from random import random as rand
-from utils import _A, _B, _C, _D, _START, _END, _POP_SIZE, _MP, _CP,_MP_ES,_LOCAL_THAO,_GLOBAL_THAO
+from utils import _A, _B, _C, _D, _START, _END, _POP_SIZE, _MP, _CP,_MP_ES,_LOCAL_THAO,_GLOBAL_THAO, _ROUND,_FITNESS
 
 def ackleyFitnessFunction(x):
     sum1 = 0
@@ -252,9 +253,9 @@ def genChildren(parents, population, type='gauss', roulette=False):
 
 def findSolutionPart1(population, generation):
     popWithFitness = sortByFitness(population)
-    print(round(popWithFitness[0][1],1))
+    print(round(popWithFitness[0][1],_ROUND))
     newfit = []
-    if round(popWithFitness[0][1],2) < 0.01:
+    if round(popWithFitness[0][1],_ROUND) < _FITNESS:
         #print(solutions)
         for i in popWithFitness:
             newfit.append(i[1])

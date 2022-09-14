@@ -18,6 +18,3 @@ _LOCAL_THAO:      Final[float] = 1/np.sqrt(2*np.sqrt(_D))
 _ROUND:           Final[int]   = 4
 _EXECUTIONS:      Final[int]   = 3
 _FITNESS:         Final[int]   = 0.001
-# other:
-# _CP:              Final[float] = 0.7     # Crossover Probability
-# _POP_SIZE:        Final[int]   = 3000    # Population size

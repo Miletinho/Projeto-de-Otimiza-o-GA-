@@ -1,25 +1,37 @@
+import sys
 import time
 from statistics import mean
 from functions import *
-from utils import _MAX_GENERATIONS,_POP_SIZE
+from utils import _EXECUTIONS, _FITNESS, _MAX_GENERATIONS,_POP_SIZE,_ROUND
 from EE import *
-import itertools
 import numpy as np
-import pandas as pd
-import sys
-import random
-import decimal
 
 
-def main(totalConvergence):
-    option = input("""
-                    Qual parte utilizar?
-                        1. Parte 1
-                        2. Parte 2
-                    Opção:""")
+def evaluateExecutions(allGen, allFitness, counter, execTime):
+    meanGen = np.average(allGen)
+    stdGen = np.std(allGen)
+    meanFitness = np.average(allFitness)
+    stdFitness = np.std(allFitness)
+    nConvergence = sum(counter)
+    meanConvergence = np.average(counter)
+    meanExecTime = np.average(execTime)
+    return [meanGen, stdGen, nConvergence, meanFitness, stdFitness, meanConvergence, meanExecTime]
+
+def printEvaluation(meanGen, stdGen, nConvergence, meanFitness, stdFitness, meanConvergence, meanExecTime):
+    print("Em que iteração o algoritmo convergiu, em média: ", round(meanGen, 3))
+    print("Desvio Padrão de em quantas iterações o algoritmo convergiu: ", round(stdGen, 3))
+    print("Fitness médio alcançado nas 3 execuções : ", round(meanFitness, 3))
+    print("Desvio padrão dos Fitness alcançados nas 3 execuções: ", round(stdFitness, 3))
+    print("Em quantas execuções o algoritmo convergiu: ", str(min(nConvergence, 3)) + "/3")
+    print("Número de indivíduos que convergiram: ", nConvergence)
+    print("Número de indivíduos que convergiram por execução, em média: ", round(meanConvergence, 3))
+    print("Tempo médio de execução das 3 execuções: ", round(meanExecTime, 3), " segundos")
+
+def main(totalConvergence, option):
     gen = 0
     population = initPopulation()
     allGenerationsFitness = []
+    startTime = time.time()
     if option == "1":
         while gen < _MAX_GENERATIONS:
             [population, fit] = findSolutionPart1(population, gen)
@@ -27,20 +39,24 @@ def main(totalConvergence):
             if population == []:
                 count = 0
                 for i in fit:
-                    print(i)
-                    if round(i,2) < 0.01:
+                    # print(i)
+                    if i < _FITNESS:
                         count+=1
                 if totalConvergence:
-                    if count == 2000:
+                    if count == _POP_SIZE:
                         print("Number of Generations to reach total convergence: ", gen+1)
-                        return [gen,mean(allGenerationsFitness),count]
+                        executionTime = getTime(startTime)
+                        return [gen,mean(allGenerationsFitness),count, executionTime]
                 else:
                     print("Number of Generations to reach individual convergence: ", gen+1)
                     print(count,f"Solution(s) has been found in {gen}th generation:") 
-                    return [gen, mean(allGenerationsFitness), count] 
+                    executionTime = getTime(startTime)
+                    print("Count: ", count)
+                    return [gen, mean(allGenerationsFitness), count, executionTime] 
                 break
             gen+=1
-        return [gen, mean(allGenerationsFitness), 0] 
+        executionTime = getTime(startTime)
+        return [gen, mean(allGenerationsFitness), 0, executionTime] 
     else:
         sigma = 1
 
@@ -63,32 +79,58 @@ def main(totalConvergence):
                 # print(ps)
                 evaluateSigma(population, ps)
                 
-            #print("\n")
-            #print(f"*****{gen}th Generation*****")
+            print("\n")
+            print(f"*****{gen}th Generation*****")
             if population == []:
                 count = 0
                 for i in fit:
-                    print(i)
-                    if round(i,2) < 0.01:
+                    if round(i,_ROUND) < _FITNESS:
+                        # print("fit:", i)
                         count+=1
                 if totalConvergence:
-                    if count == 2000:
+                    if count == _POP_SIZE:
                         print("Number of Generations to reach total convergence: ", gen+1)
-                        return [gen,mean(allGenerationsFitness),count]
+                        executionTime = getTime(startTime)
+                        return [gen,mean(allGenerationsFitness),count, executionTime]
                 else:
                     print("Number of Generations to reach individual convergence: ", gen+1)
                     print(count,f"Solution(s) has been found in {gen}th generation:") 
-                    return [gen, mean(allGenerationsFitness), count] 
+                    executionTime = getTime(startTime)
+                    return [gen, mean(allGenerationsFitness), count, executionTime] 
                 break
             gen+=1
-        
+    
     if gen == _MAX_GENERATIONS and population != []:
         print("Solution not found")
-    return [gen,]
+
+    executionTime = getTime(startTime)
+    return [gen, mean(allGenerationsFitness), 0, executionTime]
 
 if __name__ == "__main__":
+
+    option = input("""
+                Qual parte utilizar?
+                    1. Parte 1
+                    2. Parte 2
+                Opção:""")
+    option = input("""
+                Convergência?
+                    1. Total
+                    2. Individual
+                Opção:""")
+    n=0
+    generations = []
+    fitness = [] 
+    counts = []
+    times = []
+    # meanGen, stdGen, nConvergence, meanFitness, stdFitness, meanConvergence, meanExecTime
+    while n < _EXECUTIONS:
+        [gen, fit, count, executionTime] = main(False, option)
+        generations.append(gen)
+        fitness.append(fit)
+        counts.append(count)
+        times.append(executionTime)
+        n+=1
     
-    
-    interation = main(False)
-    #getTime(startTime)
-        
+    [meanGen, stdGen, nConvergence, meanFitness, stdFitness, meanConvergence, meanExecTime] = evaluateExecutions(generations, fitness, counts, times)
+    printEvaluation(meanGen, stdGen, nConvergence, meanFitness, stdFitness, meanConvergence, meanExecTime)
