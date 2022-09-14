@@ -13,8 +13,11 @@ _CP:              Final[float] = 0.9                         # Crossover Probabi
 _POP_SIZE:        Final[int]   = 2000                        # Population size
 _MAX_GENERATIONS: Final[int]   = 10000
 _EPSILON:         Final[float] = 1/5                         # Epsilon (update rule)
-_GLOBAL_THAO:      Final[float] = 1/np.sqrt(2*_D)            
-_LOCAL_THAO:       Final[float] = 1/np.sqrt(2*np.sqrt(_D))
+_GLOBAL_THAO:     Final[float] = 1/np.sqrt(2*_D)            
+_LOCAL_THAO:      Final[float] = 1/np.sqrt(2*np.sqrt(_D))
+_ROUND:           Final[int]   = 4
+_EXECUTIONS:      Final[int]   = 3
+_FITNESS:         Final[int]   = 0.001
 # other:
 # _CP:              Final[float] = 0.7     # Crossover Probability
 # _POP_SIZE:        Final[int]   = 3000    # Population size
