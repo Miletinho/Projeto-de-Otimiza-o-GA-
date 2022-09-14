@@ -16,7 +16,7 @@ _EPSILON:         Final[float] = 1/5                         # Epsilon (update r
 _GLOBAL_TAU:      Final[float] = 1/np.sqrt(2*_D)            
 _LOCAL_TAU:       Final[float] = 1/np.sqrt(2*np.sqrt(_D))
 _ROUND:           Final[int]   = 4
-_EXECUTIONS:      Final[int]   = 1
+_EXECUTIONS:      Final[int]   = 30
 _FITNESS:         Final[int]   = 0.001
 
 
