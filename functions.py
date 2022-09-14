@@ -1,57 +1,58 @@
-from hashlib import new
 import random
 import time 
 import numpy as np
 from random import random as rand
-from utils import _A, _B, _C, _D, _START, _END, _POP_SIZE, _MP, _CP,_MP_ES,_LOCAL_THAO,_GLOBAL_THAO, _ROUND,_FITNESS
+from fitness import rastrigin, schaffer, ackley
+from utils import _A, _B, _C, _D, _START, _END, _POP_SIZE, _MP, _CP,_MP_ES,_LOCAL_TAU,_GLOBAL_TAU, _ROUND,_FITNESS, constants
 
-def ackleyFitnessFunction(x):
-    sum1 = 0
-    sum2 = 0
-    for i in range(_D):
-        sum1 += x[i]**2
-        sum2 += np.cos(_C*x[i])
-
-    fitness = -_A*np.exp(-_B * np.sqrt(sum1/_D)) - np.exp(sum2/_D) + _A + np.exp(1)
-
-    return fitness
-     
     
-def generateChromosome():
+def generateChromosome(func='1'):
+    [d, s, e] = constants[func][:3]
     chromosome = []
-    for i in range(_D):
-        chromosome.append(rand() * (_END - _START) + _START)
+    for i in range(d):
+        chromosome.append(rand() * (e - s) + s)
 
     return chromosome
 
     
-def initPopulation():
+def initPopulation(func='1'):
     initialpopulation = []
 
     for i in range(_POP_SIZE):
-        initialpopulation.append(generateChromosome())
+        initialpopulation.append(generateChromosome(func))
 
     return initialpopulation
 
-def evalFitness(population):
+def getFit(x, func):
+    if func == '1':
+        fit = ackley(x)
+    elif func == '2':
+        fit = schaffer(x)
+    else:
+        fit = rastrigin(x)
+    return fit
+
+def evalFitness(population, func='1'):
     fitness = []
 
     for x in population:
-        ackleyFit = ackleyFitnessFunction(x)
-        fitness.append(ackleyFit)
+        fit = getFit(x, func)
+            
+        fitness.append(fit)
 
     return fitness
 
-def getFit(parent):
+def getF(parent):
     return parent[1]
 
-def sortByFitness(individuals):
+def sortByFitness(individuals, func='1'):
     individualsWithFitness = []
     
     for i in individuals:
-        individualsWithFitness.append([i, ackleyFitnessFunction(i)])  
-    
-    individualsWithFitness.sort(key=getFit, reverse=False)
+        fit = getFit(i, func)
+        individualsWithFitness.append([i, fit])  
+
+    individualsWithFitness.sort(key=getF, reverse=False)
 
     return individualsWithFitness
 
@@ -71,8 +72,8 @@ def rankingParents(population):
 
     return parents
 
-def getFitnessProbability(population):
-    fitness = evalFitness(population)
+def getFitnessProbability(population, func='1'):
+    fitness = evalFitness(population, func)
     fitnessProbability = []
 
     totalFitness = 0
@@ -96,21 +97,24 @@ def rouletteParents(population):
 
     return parents
 
-def calcParentFit(parents):
-    parentFit = abs(ackleyFitnessFunction(parents))
+def calcParentFit(parent, func='1'):
+    parentFit = abs(getFit(parent, func))
     return parentFit
 
-def pickParents(population):
+def tournamentSelection(population, func='1'):
     parents = []
     for k in range(_POP_SIZE):
         firstParent = random.choice(population)
         secondParent  = random.choice(population)
-        firstParentFit = calcParentFit(firstParent)
-        secondParentFit = calcParentFit(secondParent)
+
+        firstParentFit = calcParentFit(firstParent, func)
+        secondParentFit = calcParentFit(secondParent, func)
+
         if secondParentFit < firstParentFit:
             parents.append(secondParent)
         else:
             parents.append(firstParent)
+
     return parents
 
 def randomSelection(population):
@@ -121,11 +125,11 @@ def randomSelection(population):
         parents.append(chosen2)
     return parents
 
-def selection(population, type='ranking'):
+def selection(population, type='ranking', func='1'):
     if type == 'ranking': 
         return rankingParents(population)
-    elif type == 'pickParents':
-        return pickParents(population)
+    elif type == 'tournament':
+        return tournamentSelection(population, func)
     elif type == 'roulette':
         return rouletteParents(population)
     else:
@@ -136,40 +140,45 @@ def selection(population, type='ranking'):
 def onePointCrossover(parents):
     # randomly generates a number between 0 and 1 that indicates whether or not there is a crossover
     r = random.uniform(0,1)
+    d = len(parents) - 1
     children = []
     if r < _CP:
         # generate parents 
         [parent1, parent2] = parents
-        crossPoint = random.randint(1,_D-1)
+        crossPoint = random.randint(1,d-1)
         
         # create children by switching parents parts
-        child1 = np.append(parent1[:crossPoint], parent2[crossPoint:_D])
-        child2 = np.append(parent2[:crossPoint], parent1[crossPoint:_D])
+        child1 = np.append(parent1[:crossPoint], parent2[crossPoint:d])
+        child2 = np.append(parent2[:crossPoint], parent1[crossPoint:d])
         children = np.array([child1, child2])
         return children
     return parents   
 
 def intermediateRecombination(parents):
-    # randomly generates a number between 0 and 1 that indicates whether or not there is a crossover
+    # randomly generates a number between 0 and 1 that indicates whether or 
+    # not there is a crossover
     r = random.uniform(0,1)
+    d = len(parents[0])-1
     children = []
     if r < _CP:
         # generate parents 
         parent1, parent2 = parents
         child1 = []
         child2 = []
-        for g in range(_D):
+
+        for g in range(d):
             ratio = rand()
             child1.append(parent1[g] + ratio * (parent2[g] - parent1[g]))
             ratio = rand()
             child2.append(parent2[g] + ratio * (parent1[g] - parent2[g]))
 
-        if len(parent1) == (_D + 1):
-            child1.append(parent1[_D])
-            child2.append(parent2[_D])
+        if len(parent1) == (d + 1):
+            child1.append(parent1[d])
+            child2.append(parent2[d])
 
         children = np.array([child1, child2])
         return children
+
     return parents
 
 def crossover(parents, type="onePoint"):
@@ -181,7 +190,8 @@ def crossover(parents, type="onePoint"):
 
 
 def randomMutation(chromosome):
-    for i in range(_D):
+    d = len(chromosome)-1
+    for i in range(d):
         # randomly generates a number between 0 and 1 for each gene on a chromosome that indicates whether or not there is a mutation
         r = random.uniform(0,1)
         if r < _MP:
@@ -189,7 +199,8 @@ def randomMutation(chromosome):
     return chromosome
 
 def gaussianMutation(chromosome):
-    for i in range(_D):
+    d = len(chromosome)-1
+    for i in range(d):
         r = random.uniform(0,1)
         if r < _MP:
             chromosome[i] = chromosome[i] + random.gauss(0,1)
@@ -197,12 +208,14 @@ def gaussianMutation(chromosome):
 
 
 def mutationES(chromosome):
+    d = len(chromosome)-1
     # randomly pick a gene to mutate from the chromosome
-    for i in range(_D): 
+    normal = np.random.normal(0,1) 
+    for i in range(d): 
         r = random.uniform(0,1)
-        chromosome[_D] *= np.exp(_GLOBAL_THAO*np.random.normal(0,1) + _LOCAL_THAO*np.random.normal(0,1))
+        chromosome[d] *= np.exp(_GLOBAL_TAU*normal + _LOCAL_TAU*np.random.normal(0,1))
         if r < _MP_ES:
-            chromosome[i] += chromosome[_D]*np.random.normal(0,1)
+            chromosome[i] += chromosome[d]*np.random.normal(0,1)
 
     return chromosome
 
@@ -229,7 +242,7 @@ def rouletteSelection(population):
 
     return survivors
 
-def genChildren(parents, population, type='gauss', roulette=False):
+def genChildren(parents, population, type='gauss', roulette=False, func='1'):
     newGeneration = []
     fit = []
     for i in range(0, _POP_SIZE, 2):
@@ -238,7 +251,7 @@ def genChildren(parents, population, type='gauss', roulette=False):
             c = mutation(c, type=type)
             population.append(c)
         
-    population = sortByFitness(population)
+    population = sortByFitness(population,func)
 
     if not roulette:
         population = population[:_POP_SIZE]
@@ -251,7 +264,7 @@ def genChildren(parents, population, type='gauss', roulette=False):
 
     return newGeneration, fit
 
-def findSolutionPart1(population, generation):
+def findSolutionPart1(population):
     popWithFitness = sortByFitness(population)
     print(round(popWithFitness[0][1],_ROUND))
     newfit = []
@@ -261,7 +274,7 @@ def findSolutionPart1(population, generation):
             newfit.append(i[1])
         return [],newfit
     else:
-        parents = selection(population, type="random")
+        parents = selection(population, type="ranking")
         newGeneration,fit = genChildren(parents, population)
     return newGeneration,fit
     
